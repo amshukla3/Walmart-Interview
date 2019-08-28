@@ -1,0 +1,93 @@
+
+
+1. In 2018, out of all customers who opted for pick up (PUT + S2S), how many (count and %age) have never placed a pick-up
+order of over $35?
+Some filters to help:
+• where visit_date between X and Y
+• and channel = 'DOTCOM'
+• and service_id in (8, 11)
+
+Answer:
+
+Points to note:
+-Since we have an Item_id in the data, we have to group the data first at Order level
+-Assming the date is present as 'mm/dd/yyyy' in string
+WITH grouping_order 
+     AS (SELECT ugc_id, 
+                group_order_nbr, 
+                Sum(amount) AS amount, 
+                Sum(qty)    AS qty 
+         FROM   table 
+         WHERE  TO_DATE(visit_date,'mm/dd/yyyy') BETWEEN '01-01-2018' AND '12-31-2018' 
+                AND channel = 'DOTCOM' 
+                AND service_id IN ( 8, 11 ) 
+         GROUP  BY ugc_id, 
+                   group_order_nbr), 
+     cust_flag 
+     AS (SELECT ugc_id, 
+                CASE 
+                  WHEN Max(amount) <= 35 THEN 1 
+                  ELSE 0 
+                END AS cust_above_35 
+         FROM   grouping_order 
+         GROUP  BY ugc_id) 
+SELECT Sum(cust_above_35) AS count, 
+       Sum(cust_above_35) * 100 / Count(ugc_id) 
+FROM   cust_flag
+
+
+
+2. Cumulative revenue for “DOTCOM” and “OG” separately until end of each month of 2017 i.e. total revenue until end of
+Jan’17, Feb’17, until end of March’17… until end of Dec’17
+
+--Points to note
+-- As per my understanding of the question, I have to find cummulative_sales
+
+WITH monthly_sales 
+		AS (SELECT  channel,
+					EXTRACT(YEAR FROM TO_DATE(visit_date,'mm/dd/yyyy')) as year,
+					EXTRACT(MONTH FROM TO_DATE(visit_date,'mm/dd/yyyy')) as month,
+					sum(amount) as monthly_Sales
+			FROM    table
+			WHERE   channel in ('DOTCOM', 'OG')
+			AND 	EXTRACT(YEAR FROM TO_DATE(visit_date,'mm/dd/yyyy')) = 2017
+			GROUP BY 1,2)
+SELECT 	year,
+		month,
+		monthly_Sales,
+		SUM(monthly_sales) OVER(PARTITION BY channel order by month ROWS UNBOUNDED PRECEDING) as cummulative_sales
+FROM monthly_sales
+
+3. For each quarter of a year - what percentage of shoppers (dotcom only) shopping in a fiscal quarter, will shop again (repeat)
+in the following quarter? You’d have to look at Q1 for the year to get repeat rate for Q4 of current year
+
+--Ponits to note
+--using lead function
+--using mod function to validate data of last quarter of a year against first quarter of next year
+
+WITH next_quarter 
+	AS (SELECT	ugc_id,
+				EXTRACT(YEAR FROM TO_DATE(visit_date,'mm/dd/yyyy')) as year,
+				EXTRACT(QUARTER FROM TO_DATE(visit_date,'mm/dd/yyyy')) as quarter,
+				LEAD(visit_date,1,NULL) OVER(PARTITION BY ugc_id ORDER BY visit_date) as next_visit
+		From 	table
+		WHERE 	channel = 'DOTCOM'),
+
+	next_quarter_distinct 
+	AS (SELECT	ugc_id,
+				year,
+				quarter,max(CASE WHEN EXTRACT(YEAR FROM TO_DATE(next_visit,'mm/dd/yyyy'))= year and 
+				(MOD(quarter,4)+1)=EXTRACT(QUARTER FROM TO_DATE(next_visit,'mm/dd/yyyy')) then 1 else 0 end as flag) as next_qtr_flag
+		From 	next_quarter
+		GROUP BY 1,2,3
+)	
+SELECT 	year,
+		quarter,
+		sum(next_qtr_flag) as count, 
+		sum(next_qtr_flag)/count(next_qtr_flag) as per
+FROM next_quarter_distinct
+GROUP BY 1,2
+
+
+
+
