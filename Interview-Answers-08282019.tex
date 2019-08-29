@@ -1,0 +1,223 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Walmart Interview Answers},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Walmart Interview Answers}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+\hypertarget{r-markdown}{%
+\subsection{R Markdown}\label{r-markdown}}
+
+This is an R Markdown document. Markdown is a simple formatting syntax
+for authoring HTML, PDF, and MS Word documents. For more details on
+using R Markdown see \url{http://rmarkdown.rstudio.com}.
+
+When you click the \textbf{Knit} button a document will be generated
+that includes both content as well as the output of any embedded R code
+chunks within the document. You can embed an R code chunk like this:
+
+library(data.table) \#\# for importing data library(tidyverse) \#\# for
+data wrangling library(stringr) \#\# for string manipulation
+library(plotly) library(dplyr) library(Hmisc)
+
+\#\#set working directory setwd(`C:/OneDrive/OneDrive -
+Tredence/Attachments/Omni Channel-Walmart
+Interview/Interview/ml-latest-small')
+
+links\textless{}-read.csv(`links.csv',stringsAsFactors = F)
+movies\textless{}-read.csv(`movies.csv',stringsAsFactors = F)
+ratings\textless{}-read.csv(`ratings.csv',stringsAsFactors = F)
+tags\textless{}-read.csv(`tags.csv',stringsAsFactors = F)
+
+\#\#Data Manipulations before solving the questions \#\#Exrtact year and
+title out of title column and split genre in movies df
+movies\textless{}-movies \%\textgreater{}\%\\
+mutate(year=as.numeric(substr(title,unlist(regexpr(``\textbackslash{}({[}0-9\textbackslash{}-{]}\emph{\textbackslash{})\(",title))+1,unlist(regexpr("\\([0-9\\-]*\\)\)",title))+4)),
+title\_new=substr(title,1,ifelse(unlist(regexpr("\textbackslash{}({[}0-9\textbackslash{}-{]}}\textbackslash{})\(",title))-1==-2,nchar(title),unlist(regexpr("\\([0-9\\-]*\\)\)'',title))-1)),
+genre=strsplit(genres,``\textbackslash{}\textbar{}''))
+\%\textgreater{}\% unnest(genre)
+
+movies\textless{}-movies{[}complete.cases(movies),{]}
+
+\#\#convert unix timestamp to standard dates
+tags\textless{}-tags\%\textgreater{}\%
+mutate(tags\_Date=as.Date(as.POSIXct(timestamp,origin=``1970-01-01'',tz=``GMT'')),
+tags\_year=year(tags\_Date))
+
+ratings\textless{}-ratings\%\textgreater{}\%
+mutate(rat\_Date=as.Date(as.POSIXct(timestamp,origin=``1970-01-01'',tz=``GMT'')),
+rat\_year=year(rat\_Date))
+
+\hypertarget{the-hypothesis}{%
+\subsection{The Hypothesis:}\label{the-hypothesis}}
+
+\#\#" count of movie produced per year depends on rating and total
+reviews of the movies of past years by genre- \#\#We will be doing this
+for most popular genre and from 2000-2015. Popular would be decided by
+the maximum number \#\#of movies across years"
+
+\hypertarget{steps-to-be-followed}{%
+\subsection{Steps to be followed:}\label{steps-to-be-followed}}
+
+\hypertarget{find-the-most-popular-genre}{%
+\section{1. Find the most popular
+genre}\label{find-the-most-popular-genre}}
+
+\hypertarget{find-total-number-of-movies-made-in-that-genre-in-2000-2015}{%
+\section{2. Find total number of movies made in that genre in
+2000-2015}\label{find-total-number-of-movies-made-in-that-genre-in-2000-2015}}
+
+\hypertarget{find-avg-rating}{%
+\section{3. Find avg rating}\label{find-avg-rating}}
+
+\hypertarget{cross-reference-step-2-and-3-to-find-out-the-nature-of-the-relation-if-any}{%
+\section{4. Cross reference step 2 and 3 to find out the nature of the
+relation, if
+any}\label{cross-reference-step-2-and-3-to-find-out-the-nature-of-the-relation-if-any}}
+
+\#\#Assumptions: \#\#Data is holistic to be used for the analysis
+
+\#1.Find the most popular genre
+
+genre\textless{}-movies\%\textgreater{}\%
+distinct(movieId,genre)\%\textgreater{}\%
+group\_by(genre)\%\textgreater{}\%
+summarise(count=n())\%\textgreater{}\%
+filter(row\_number(desc(count))==1) \#\# genre is drama
+
+\hypertarget{find-total-number-of-movies-made-in-that-genre-in-2000-2015-1}{%
+\section{2. Find total number of movies made in that genre in
+2000-2015}\label{find-total-number-of-movies-made-in-that-genre-in-2000-2015-1}}
+
+movie\_per\_year\textless{}-movies\%\textgreater{}\% distinct(
+movieId,year,genre)\%\textgreater{}\% filter(year \textgreater{}= 2000
+\& year \textless{}= 2015)\%\textgreater{}\% filter(genre
+==`Drama')\%\textgreater{}\% group\_by(year)\%\textgreater{}\%
+summarise(movie\_count=n())
+
+\hypertarget{find-avg-rating-1}{%
+\section{3. Find avg rating}\label{find-avg-rating-1}}
+
+rat\_per\_year\textless{}- movies\%\textgreater{}\% distinct(
+movieId,year,genre)\%\textgreater{}\% filter( genre ==
+``Drama'')\%\textgreater{}\% filter(year \textgreater{}= 2000 \& year
+\textless{}= 2015)\%\textgreater{}\% left\_join(ratings, by =
+``movieId'')\%\textgreater{}\% group\_by(year)\%\textgreater{}\%
+summarise(avg\_rating=mean(rating,na.rm = T),
+rev\_count=n\_distinct(userId))
+
+\hypertarget{joining-the-2}{%
+\subsection{Joining the 2}\label{joining-the-2}}
+
+count\_rat\_per\_year\textless{}-left\_join(movie\_per\_year,rat\_per\_year)
+
+plot1\textless{}-count\_rat\_per\_year\%\textgreater{}\% ggplot()+
+geom\_line(aes(x=year,y=movie\_count,color=``red''))+
+geom\_line(aes(x=year,y=rev\_count,color=``blue'' ))+
+geom\_line(aes(x=year,y=avg\_rating,color=``green'' ))
+
+ggplotly(plot1)
+
+rcorr(as.matrix(count\_rat\_per\_year)) \#\#\# From data and chart its
+clear that there is more or less no impact of \#\# avg ratings and
+number of reviews on the count of movies being made
+
+\begin{verbatim}
+
+## Including Plots
+
+You can also embed plots, for example:
+
+plot1<-count_rat_per_year%>%
+      ggplot()+ geom_line(aes(x=year,y=movie_count,color="red"))+
+      geom_line(aes(x=year,y=rev_count,color="blue" ))+
+      geom_line(aes(x=year,y=avg_rating,color="green" ))
+
+ggplotly(plot1)
+\end{verbatim}
+
+Note that the \texttt{echo\ =\ FALSE} parameter was added to the code
+chunk to prevent printing of the R code that generated the plot.
+
+
+\end{document}
