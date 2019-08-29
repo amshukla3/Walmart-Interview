@@ -9,6 +9,7 @@ library(tidyverse) ## for data wrangling
 library(stringr) ## for string manipulation
 library(plotly)
 library(dplyr)
+library(Hmisc)
 
 ##set working directory
 setwd('C:/OneDrive/OneDrive - Tredence/Attachments/Omni Channel-Walmart Interview/Interview/ml-latest-small')
@@ -89,6 +90,12 @@ plot1<-count_rat_per_year%>%
 
 ggplotly(plot1)
         
+rcorr(as.matrix(count_rat_per_year))
+##            year   movie_count avg_rating rev_count
+## year               0.0001      0.4425     0.0000   
+## movie_count 0.0001             0.7595     0.0022   
+## avg_rating  0.4425 0.7595                 0.0833   
+## rev_count   0.0000 0.0022      0.0833
 
-### From data and chart its clear that there is more or less no impact of 
-## avg ratings and number of reviews on the count of movies being made
+### From data and chart its clear that there is a weak connection between movie count and avg rating(0.7) but no impact of 
+## number of reviews on the count of movies being made. The chart also suggests the same
