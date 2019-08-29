@@ -124,8 +124,8 @@ rcorr(as.matrix(count_rat_per_year))
 # avg_rating  0.4425 0.7595                 0.0833   
 # rev_count   0.0000 0.0022      0.0833  
 
-### From data and chart and the corelation table 
-# its clear that there is a weak relation between movie count per year and avg ratings
-# and no impact of  avg ratings and number of reviews on the count of movies being made
+# The hypothesis is false. The chart clearly shows that there is very weak relation between 
+# movies produced every year and the average rating. Avg Rating has no relation with the movies produced
+# The corelation coefficients in the above table also show the same.
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
